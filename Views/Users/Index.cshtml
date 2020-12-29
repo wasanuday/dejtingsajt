@@ -1,0 +1,24 @@
+﻿@model IEnumerable<dejtingsajt.Models.User>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Datig </h1>
+
+<p>
+    <a asp-action="Create">Create your profile</a>
+</p>
+
+<ul>
+    @foreach (var item in Model)
+    {
+
+        <li>
+
+            @Html.ActionLink(item.Name, "Details", new { id = item.userId })
+        </li>
+
+
+    }
+</ul>

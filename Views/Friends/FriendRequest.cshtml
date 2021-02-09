@@ -1,0 +1,26 @@
+﻿@model IEnumerable<dejtingsajt.Models.ApplicationUser>
+<ul>
+    @foreach (var item in Model)
+    {
+
+        <li>
+            @if (item.Photo != null)
+            {
+                <img style="width:40px;height:40px; object-fit:cover; border-radius:30px" src="data:image/*;base64,@(Convert.ToBase64String(item.Photo))">
+            }
+            else
+            {
+                <img id="profilePicture" style="width: 40px; height: 40px; object-fit: cover; border-radius: 30px" src="/images/download.jpg">
+            }
+
+            @Html.ActionLink(item.UserName, "Details", "Users", new { id = item.Id })
+        </li>
+
+
+        <div>
+            <input type="button" class="btn btn-primary" value="Accept" onclick="location.href='@Url.Action("AcceptFriend", "Frienfs", new { id = item.Id })'" />
+        </div>
+        
+
+    }
+</ul>

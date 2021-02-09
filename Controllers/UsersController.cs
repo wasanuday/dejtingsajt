@@ -8,22 +8,27 @@ using Microsoft.EntityFrameworkCore;
 using dejtingsajt.Data;
 using dejtingsajt.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace dejtingsajt.Controllers
 {
     public class UsersController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UsersController(ApplicationDbContext context)
+        public UsersController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Users
         public async Task<IActionResult> Index()
         {
-            return View(await _context.User.ToListAsync());
+            return View(await _context.ApplicationUsers.ToListAsync());
         }
 
         //  // GET: Users/search form
@@ -36,65 +41,56 @@ namespace dejtingsajt.Controllers
         public async Task<IActionResult>ShowSearchResults(String Searchphrase)
         {
             
-            return View("Index", await _context.User.Where(u => u.Name.Contains(Searchphrase)).ToListAsync());
+            return View("Index", await _context.ApplicationUsers.Where(u => u.UserName.Contains(Searchphrase)).ToListAsync());
         }
-        [Authorize]
+       
         // GET: Users/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(String id)
         {
-            if (id == null)
+           if (id == null)
             {
                 return NotFound();
             }
 
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.userId == id);
+            var user = await _context.ApplicationUsers
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
                 return NotFound();
             }
-
+           
             return View(user);
         }
 
-        // GET: Users/Create
-        [Authorize(Roles = "Admin")]
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("userId,Name,Photo,Gender,Age")] User user)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(user);
-        }
+        
 
         // GET: Users/Edit/5
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int? id)
-        {
+        
+        public async Task<IActionResult> Edit(String id)
+        
+       {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var user = await _context.User.FindAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
+          
+            var model = new EditProfileViewModel
+            {
+
+                UserName= user.UserName,
+                Age = user.Age,
+                Gender = user.Gender,
+                Photo =user.Photo
+
+            };
+
+
             return View(user);
         }
 
@@ -103,71 +99,67 @@ namespace dejtingsajt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, [Bind("userId,Name,Photo,Gender,Age")] User user)
+        
+        public async Task<IActionResult> Edit(EditProfileViewModel model)
         {
-            if (id != user.userId)
-            {
-                return NotFound();
-            }
 
-            if (ModelState.IsValid)
+            if (Request.Form.Files.Count > 0)
             {
-                try
+                IFormFile file = Request.Form.Files.FirstOrDefault();
+                using (var dataStream = new MemoryStream())
                 {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
+                    await file.CopyToAsync(dataStream);
+                    model.Photo = dataStream.ToArray();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.userId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+            }
+            var user = await _userManager.FindByIdAsync(model.Id);
+                user.UserName = model.UserName;
+                user.Photo = model.Photo;
+                user.Age = model.Age;
+                user.Gender = model.Gender;
+           
+            var resulte = await _userManager.UpdateAsync(user);
+            
+            if (resulte.Succeeded)
+            {
                 return RedirectToAction(nameof(Index));
             }
             return View(user);
         }
 
         // GET: Users/Delete/5
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int? id)
+      
+        public async Task<IActionResult> Delete(String id)
         {
             if (id == null)
-            {
-                return NotFound();
-            }
+                        {
+                            return NotFound();
+                        }
 
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.userId == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return View(user);
+                        var user = await _context.ApplicationUsers
+                            .FirstOrDefaultAsync(m => m.Id == id);
+                        if (user == null)
+                        {
+                            return NotFound();
+                        }
+                          return View(user);
         }
 
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        
+        public async Task<IActionResult> DeleteConfirmed(String id)
         {
-            var user = await _context.User.FindAsync(id);
-            _context.User.Remove(user);
+            var user = await _context.ApplicationUsers.FindAsync(id);
+            _context.ApplicationUsers.Remove(user);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UserExists(int id)
+        private bool UserExists(String id)
         {
-            return _context.User.Any(e => e.userId == id);
+            return _context.ApplicationUsers.Any(e => e.Id == id);
         }
     }
 }

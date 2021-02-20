@@ -9,7 +9,7 @@ namespace dejtingsajt.Models
     {
         public ApplicationUser CurrentUser { get; set; }
         public string Id { get; set; }
-        public string UserName { get; set; }
+        public string Name { get; set; }
         public byte[] Photo { get; set; }
         public string Gender { get; set; }
         public int Age { get; set; }

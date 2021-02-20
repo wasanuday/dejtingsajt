@@ -14,5 +14,6 @@ namespace dejtingsajt.Data
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Friend> Friends { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }

@@ -95,7 +95,7 @@ namespace dejtingsajt.Areas.Identity.Pages.Account
                     }
                     
                 }
-                var user = new ApplicationUser { UserName = Input.Name, Email = Input.Email, Age= Input.Age, Gender= Input.Gender,Photo = Input.Photo };
+                var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email, Name = Input.Name, Age = Input.Age, Gender= Input.Gender,Photo = Input.Photo };
                 await _userManager.UpdateAsync(user);
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)

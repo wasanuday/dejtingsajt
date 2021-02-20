@@ -14,6 +14,7 @@ using System.IO;
 
 namespace dejtingsajt.Controllers
 {
+ 
     public class UsersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -41,31 +42,45 @@ namespace dejtingsajt.Controllers
         public async Task<IActionResult>ShowSearchResults(String Searchphrase)
         {
             
-            return View("Index", await _context.ApplicationUsers.Where(u => u.UserName.Contains(Searchphrase)).ToListAsync());
+            return View("Index", await _context.ApplicationUsers.Where(u => u.Name.Contains(Searchphrase)).ToListAsync());
         }
-       
-        // GET: Users/Details/5
+
+        // GET: Users/Details/5 
+        [Authorize]
         public async Task<IActionResult> Details(String id)
         {
-           if (id == null)
+            if (id == null)
             {
                 return NotFound();
             }
-
+           
             var user = await _context.ApplicationUsers
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
                 return NotFound();
             }
-           
-            return View(user);
+            var msgRequests = (from m in _context.Messages where m.ReceiverId == id select m);
+            List<Message> messages = new List<Message>();
+            List<ApplicationUser> senders = new List<ApplicationUser>();
+            foreach (Message m in msgRequests)
+            {
+                var sender = _context.ApplicationUsers.Find(m.SenderId);
+                senders.Add(sender);
+                messages.Add(m);
+            }
+            var messageVM = new MessageViewModel{
+                MessagesSender = senders,
+                messagesList = messages,
+                applicationUser =  user
+        };
+            return View(messageVM);
         }
 
-        
+
 
         // GET: Users/Edit/5
-        
+        [Authorize]
         public async Task<IActionResult> Edit(String id)
         
        {
@@ -83,7 +98,7 @@ namespace dejtingsajt.Controllers
             var model = new EditProfileViewModel
             {
 
-                UserName= user.UserName,
+                Name= user.Name,
                 Age = user.Age,
                 Gender = user.Gender,
                 Photo =user.Photo
@@ -99,7 +114,7 @@ namespace dejtingsajt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        
+        [Authorize]
         public async Task<IActionResult> Edit(EditProfileViewModel model)
         {
 
@@ -113,7 +128,7 @@ namespace dejtingsajt.Controllers
                 }
             }
             var user = await _userManager.FindByIdAsync(model.Id);
-                user.UserName = model.UserName;
+                user.Name = model.Name;
                 user.Photo = model.Photo;
                 user.Age = model.Age;
                 user.Gender = model.Gender;
@@ -128,7 +143,7 @@ namespace dejtingsajt.Controllers
         }
 
         // GET: Users/Delete/5
-      
+        [Authorize]
         public async Task<IActionResult> Delete(String id)
         {
             if (id == null)
@@ -146,6 +161,7 @@ namespace dejtingsajt.Controllers
         }
 
         // POST: Users/Delete/5
+        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         

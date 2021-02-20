@@ -35,7 +35,7 @@ namespace dejtingsajt.Controllers
             _context.Friends.Add(friend);
             _context.SaveChanges();
 
-            return RedirectToAction("Details", "User", new { id });
+            return RedirectToAction("Details", "Users", new { id });
         }
 
 
@@ -44,7 +44,7 @@ namespace dejtingsajt.Controllers
             {
            
 
-            var friendRequests = _context.Friends.Where(f => f.ReceiverId.Equals(_userManager.GetUserId(User)) && f.isConfirmed == false).Select(f => f.SenderId);
+            var friendRequests = _context.Friends.Where(f => f.ReceiverId.Equals(_userManager.GetUserId(User)) && f.isConfirmed == false ).Select(f => f.SenderId);
             List < ApplicationUser > senders = new List<ApplicationUser>();
            
             foreach (string id in friendRequests)
@@ -58,11 +58,35 @@ namespace dejtingsajt.Controllers
       
              public async Task<IActionResult> AcceptFriend(String id)
         {
-             Friend friend =_context.Friends.Where(f => f.SenderId == id && f.ReceiverId.Equals(_userManager.GetUserId(User))).First(); 
+             Friend friend =_context.Friends.Where(f => f.SenderId == id && f.ReceiverId.Equals(_userManager.GetUserId(User))).FirstOrDefault(); 
              friend.isConfirmed = true;
-            return RedirectToAction("Details", "User", new { id });
+            _context.SaveChanges();
+            return RedirectToAction("Details", "Users", new { id });
         }
 
+
+        public async Task<IActionResult> FriendsList(String id)
+        {
+            var friendRequests = (from f in _context.Friends where f.ReceiverId ==id || f.SenderId==id && f.isConfirmed == true select f).ToList();
+            List<ApplicationUser> friends = new List<ApplicationUser>();
+            foreach (Friend f in friendRequests)
+            {
+
+                ApplicationUser user = new ApplicationUser();
+                if (id == f.SenderId)
+                {
+                    user = _context.ApplicationUsers.Find(f.ReceiverId);
+                }
+                else
+                {
+                    user = _context.ApplicationUsers.Find(f.SenderId);
+                }
+                friends.Add(user);
+            }
+
+            return View(friends);
+          
+        }    
 
     }
 }

@@ -69,12 +69,16 @@ namespace dejtingsajt.Controllers
                 senders.Add(sender);
                 messages.Add(m);
             }
-            var messageVM = new MessageViewModel{
+
+            Boolean friendRequests = _context.Friends.Where(f => f.SenderId.Equals(_userManager.GetUserId(User)) && f.ReceiverId.Equals(id)).Select(f => f.isConfirmed).FirstOrDefault();
+
+            var ProfileVM = new ProfileViewModel{
                 MessagesSender = senders,
                 messagesList = messages,
+                friend = friendRequests,
                 applicationUser =  user
         };
-            return View(messageVM);
+            return View(ProfileVM);
         }
 
 

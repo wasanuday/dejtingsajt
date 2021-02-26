@@ -67,18 +67,18 @@ namespace dejtingsajt.Controllers
 
         public async Task<IActionResult> FriendsList(String id)
         {
-            var friendRequests = (from f in _context.Friends where f.ReceiverId ==id || f.SenderId==id && f.isConfirmed == true select f).ToList();
+            var friendRequests = _context.Friends.Where(f => f.isConfirmed == true && f.ReceiverId ==id || f.isConfirmed == true && f.SenderId==id).ToList();
             List<ApplicationUser> friends = new List<ApplicationUser>();
             foreach (Friend f in friendRequests)
             {
 
                 ApplicationUser user = new ApplicationUser();
-                if (id == f.SenderId)
+                if (f.SenderId == id)
                 {
                     user = _context.ApplicationUsers.Find(f.ReceiverId);
                 }
-                else
-                {
+                else 
+                    {
                     user = _context.ApplicationUsers.Find(f.SenderId);
                 }
                 friends.Add(user);
@@ -87,6 +87,7 @@ namespace dejtingsajt.Controllers
             return View(friends);
           
         }    
+
 
     }
 }

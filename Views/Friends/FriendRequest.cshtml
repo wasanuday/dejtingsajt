@@ -1,9 +1,9 @@
 ﻿@model IEnumerable<dejtingsajt.Models.ApplicationUser>
-<ul>
+<ul class="row">
     @foreach (var item in Model)
     {
 
-        <li>
+        <li class="col-6">
             @if (item.Photo != null)
             {
                 <img style="width:40px;height:40px; object-fit:cover; border-radius:30px" src="data:image/*;base64,@(Convert.ToBase64String(item.Photo))">
@@ -17,10 +17,10 @@
         </li>
 
 
-        <div>
+        <div class="col-6">
             <input type="button" class="btn btn-primary" value="Accept" onclick="location.href='@Url.Action("AcceptFriend", new { id = item.Id })'" />
         </div>
 
 
-    }
+        }
 </ul>
